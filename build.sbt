@@ -3,15 +3,18 @@ import scalanative.sbtplugin.ScalaNativePluginInternal._
 organization := "org.scala-native"
 name := "scala-bindgen"
 
+//val clangArgs = Seq("-I","/usr/local/opt/llvm/include/","-L","/usr/local/opt/llvm/lib","-v")
+
 lazy val platform: Seq[Setting[_]] =
   Seq(
     scalaVersion := "2.11.11",
     libraryDependencies ++=
       Seq(
-        "org.scala-native" %%% "nativelib" % "0.3.1",
-        "org.scala-native" %%% "javalib"   % "0.3.1",
-        "org.scala-native" %%% "scalalib"  % "0.3.1",
-        "com.github.scopt" %%% "scopt"     % "3.6.0"
+        "org.scala-native" %%% "nativelib" % "0.3.2",
+        "org.scala-native" %%% "javalib"   % "0.3.2",
+        "org.scala-native" %%% "scalalib"  % "0.3.2",
+        "com.github.scopt" %%% "scopt"     % "3.6.0",
+        "biz.enef"         %%% "slogging"  % "0.6.0-SNAPSHOT"
       )
   )
 
@@ -32,6 +35,8 @@ lazy val bindgen =
     .settings(platform)
     .settings(testSettings)
     .settings(
+      nativeCompileOptions in Compile ++= Seq("-I","/usr/local/opt/llvm@4/include/"),
+      nativeLinkingOptions in Compile ++= Seq("-L","/usr/local/opt/llvm@4/lib"),
       nativeCompileLL in Compile += {
         val compiler = (nativeClang in Compile).value.getAbsolutePath
         val opts     = (nativeCompileOptions in Compile).value

@@ -1,5 +1,6 @@
 package bindgen
 
+import bindgen.c.FileUtils
 import utest._
 
 object Test extends TestSuite {

@@ -8,6 +8,7 @@
 #include <clang-c/Index.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 // An incomplete list of enums. Not all of these are currently used.
 // Each enum value is exposed to Scala using a C method.
@@ -83,12 +84,15 @@
     PRIMITIVE_(CLongLong, getEnumConstantDeclValue, CXCursor, *cursor)         \
     COPY_(CXType, getCursorType, CXCursor, *cursor)                            \
     COPY_(CXType, getResultType, CXType, *tpe)                                 \
+    COPY_(CXType, getPointeeType, CXType, *tpe)                                 \
+    COPY_(CXType, getCursorResultType, CXCursor, *cursor)                                 \
     COPY_(CXType, getEnumDeclIntegerType, CXCursor, *cursor)                   \
     COPY_(CXType, getTypedefDeclUnderlyingType, CXCursor, *cursor)             \
+    COPY_(CXCursor, getTypeDeclaration, CXType, *tpe)                          \
     COPY_(CXCursor, getTranslationUnitCursor, CXTranslationUnit, unit)         \
     STRING_(getCursorKindSpelling, CXCursorKind, kind)                         \
     STRING_(getCursorSpelling, CXCursor, *cursor)                              \
-    STRING_(getTypeSpelling, CXType, *tpe)
+    STRING_(getTypeSpelling, CXType, *tpe)                                     \
 
 typedef enum CXCursorKind CXCursorKind;
 typedef long long CLongLong;
@@ -154,3 +158,9 @@ unsigned bindgen_clang_visitChildren(CXCursor *parent, bindgen_visitor visitor,
 
     return clang_visitChildren(*parent, bindgen_clang_visit, &ctx);
 }
+
+unsigned int bindgen_getTypeKind(CXType *tpe) {
+  return tpe->kind;
+}
+
+
