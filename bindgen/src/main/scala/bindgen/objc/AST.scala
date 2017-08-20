@@ -20,7 +20,8 @@ object AST extends LazyLogging {
   case class TranslationUnit(name: String,
                              var interfaces: Seq[Interface] = Nil,
                              var functions: Seq[GlobalFunction] = Nil,
-                             var structs: Seq[StructDecl] = Nil) extends Node {
+                             var structs: Seq[StructDecl] = Nil,
+                             var globalVars: Seq[GlobalVarDecl] = Nil) extends Node {
     final def parent = None
   }
   object TranslationUnit extends LazyLogging {
@@ -41,6 +42,9 @@ object AST extends LazyLogging {
           case StructDecl(s) =>
             s.parent = Some(tu)
             tu.structs :+= s
+//          case GlobalVarDecl(v) =>
+//            v.parent = Some(tu)
+//            tu.globalVars :+= v
           case _ if
              child.kind == CXCursorKind.ObjCClassRef ||
              child.kind == CXCursorKind.ObjCProtocolRef => ()
@@ -97,8 +101,11 @@ object AST extends LazyLogging {
             m.parent = Some(p)
             p.methods :+= m
           case ObjCSuperClassRef(ref) => p.superClass = Some(ref)
-            // if we get an ObjCClassRef here, we're actually extending the class in this reference
-          case ObjCClassRef(ref) => p.name = ref.name
+            // if we get an ObjCClassRef in a Category, we're actually extending the class
+            // => replace the Category name with the class name
+          case ObjCClassRef(ref) if p.isCategory =>
+//            logger.error("replacing {} with {} (isProtocol: {}, isCategory: {})",p.name,ref.name,p.isProtocol,p.isCategory)
+            p.name = ref.name
           case ObjCProtocolRef(ref) => p.protocols :+= ref
           case TemplateTypeParameter(tpe) => p.typeParams :+= tpe
           case _ if
@@ -219,12 +226,44 @@ object AST extends LazyLogging {
     }
   }
 
+  case class GlobalVarDecl(name: String) extends Node {
+    var parent: Option[TranslationUnit] = None
+  }
+  object GlobalVarDecl {
+    def unapply(c: CXCursor): Option[GlobalVarDecl] =
+      if(c.kind == CXCursorKind.VarDecl) {
+        val res = Some( parse(c) )
+        res
+      }
+      else None
+
+    def parse(c: CXCursor): GlobalVarDecl = {
+      val name = c.cursorSpelling
+      logger.trace("parsing VarDecl {}", name)
+      logger.error("{}",api.isStatement(c))
+      val v = GlobalVarDecl(name)
+
+      c.visitChildren(v.cast[Data]){ (child: CXCursor, parent: CXCursor, data: Data) =>
+        val v = data.cast[GlobalVarDecl]
+        child match {
+          case x =>
+            logger.warn("ignoring {} {}",child.cursorKindSpelling,child.cursorSpelling)
+        }
+        CXChildVisitResult.Continue
+      }
+      logger.trace("end of VarDecl {}",name)
+      v
+    }
+  }
+
   object TypeRef extends LazyLogging {
     def unapply(c: CXCursor): Option[ScalaType] =
       if(c.kind == CXCursorKind.TypeRef) {
         val name = c.cursorSpelling
         logger.trace("parsing TypeRef {}",name)
-        Some( ScalaType(name) )
+        val res = Some( ScalaType(name) )
+        logger.trace("end of TypeRef {}",name)
+        res
       }
       else None
   }
@@ -308,7 +347,10 @@ object AST extends LazyLogging {
         .map(apply(_))
         .getOrElse(kind match {
         case CXTypeKind.Pointer =>
-          ScalaType("Ptr", Seq(ScalaType(cxtype.pointeeType)))
+          if(cxtype.pointeeType.typeKind==CXTypeKind.Void)
+            ptrByte
+          else
+            ScalaType("Ptr", Seq(ScalaType(cxtype.pointeeType)))
         case CXTypeKind.ObjCObjectPointer =>
           ScalaType(cxtype.pointeeType)
         case CXTypeKind.ObjCInterface =>
@@ -372,7 +414,8 @@ object AST extends LazyLogging {
     case "object"   => "`object`"
     case "class"    => "`class`"
     case "finalize" => "`finalize`"
-    case "Class"    => "ObjCClass"
+    case "type"     => "`type`"
+    case "Class"    => "id"
     case x => x
   }
 

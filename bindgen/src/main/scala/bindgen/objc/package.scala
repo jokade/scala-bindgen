@@ -27,6 +27,7 @@ package object objc extends LazyLogging {
     @inline def underlyingType: CXType = api.getTypedefDeclUnderlyingType(c)
     @inline def cursorResultType: CXType = api.getCursorResultType(c)
     @inline def declObjCTypeEncoding: String = api.getDeclObjCTypeEncoding(c).string
+    @inline def evaluate: CXEvalResult = api.evaluate(c)
   }
 
   implicit final class RichCXType(val t: CXType) extends AnyVal {
@@ -38,6 +39,9 @@ package object objc extends LazyLogging {
     @inline def typeDeclaration: CXCursor = api.getTypeDeclaration(t)
   }
 
+  implicit final class RichCXEvalResult(val r: CXEvalResult) extends AnyVal {
+    @inline def resultKind: CXEvalResultKind = api.getEvalResultKind(r)
+  }
 
   val typeMap = Map(
     //  CXTypeKind.Invalid = 0.toUInt

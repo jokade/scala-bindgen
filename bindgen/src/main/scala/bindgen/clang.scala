@@ -13,6 +13,17 @@ object clang {
   type CXDiagnostic      = Ptr[Byte]
   type Visitor           = CFunctionPtr3[CXCursor, CXCursor, Data, UInt]
   type CXSourceLocation  = Ptr[CStruct2[Ptr[Byte],UInt]]
+  type CXEvalResult      = Ptr[Byte]
+  type CXEvalResultKind  = UInt
+  object CXEvalResultKind {
+    val Int            = 1.toUInt
+    val Float          = 2.toUInt
+    val ObjCStrLiteral = 3.toUInt
+    val StrLiteral     = 4.toUInt
+    val CFStr          = 5.toUInt
+    val Other          = 6.toUInt
+    val Unexposed      = 0.toUInt
+  }
 
   type CXCursorKind            = UInt
   type CXTranslationUnit_Flags = UInt
@@ -629,6 +640,14 @@ object clang {
     @name("bindgen_clang_getTypeDeclaration")
     def getTypeDeclaration(t: CXType): CXCursor = extern
 
+    @name("bindgen_clang_Cursor_Evaluate")
+    def evaluate(c: CXCursor): CXEvalResult = extern
+
+    @name("bindgen_clang_EvalResult_getKind")
+    def getEvalResultKind(r: CXEvalResult): CXEvalResultKind = extern
+
+    @name("clang_isStatement")
+    def isStatement(c: CXCursor): Int = extern
 //    /**
 //     * Returns a CString representing the location of the current cursor.
 //     * The returned CString should be freed when it is no longer required!

@@ -82,6 +82,7 @@
     PRIMITIVE_(CXCursorKind, getCursorKind, CXCursor, *cursor)                 \
     PRIMITIVE_(CInt, Cursor_getNumArguments, CXCursor, *cursor)                \
     PRIMITIVE_(CLongLong, getEnumConstantDeclValue, CXCursor, *cursor)         \
+    PRIMITIVE_(CXEvalResultKind, EvalResult_getKind, CXEvalResult, *result)    \
     COPY_(CXType, getCursorType, CXCursor, *cursor)                            \
     COPY_(CXType, getResultType, CXType, *tpe)                                 \
     COPY_(CXType, getPointeeType, CXType, *tpe)                                 \
@@ -90,6 +91,7 @@
     COPY_(CXType, getTypedefDeclUnderlyingType, CXCursor, *cursor)             \
     COPY_(CXCursor, getTypeDeclaration, CXType, *tpe)                          \
     COPY_(CXCursor, getTranslationUnitCursor, CXTranslationUnit, unit)         \
+    COPY_(CXEvalResult, Cursor_Evaluate, CXCursor, *cursor)                    \
     STRING_(getCursorKindSpelling, CXCursorKind, kind)                         \
     STRING_(getCursorSpelling, CXCursor, *cursor)                              \
     STRING_(getTypeSpelling, CXType, *tpe)                                     \
