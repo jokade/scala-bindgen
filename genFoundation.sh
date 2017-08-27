@@ -43,5 +43,8 @@ mkdir -p $out
 ## NSInvocation
 #$bindgen -t objc -P cocoa.foundation -o $out/NSInvocation.scala $f/NSInvocation.h $@
 
-# NSMethodSignature
-$bindgen -t objc -P cocoa.foundation -o $out/NSMethodSignature.scala $f/NSMethodSignature.h $@
+## NSMethodSignature
+#$bindgen -t objc -P cocoa.foundation -o $out/NSMethodSignature.scala $f/NSMethodSignature.h $@
+
+# NSNotification
+$bindgen -t objc -P cocoa.foundation -o $out/NSNotification.scala $f/NSNotification.h $@
