@@ -12,7 +12,10 @@ case class Args(files: Seq[String]     = Seq(),
                 pkgOut: Option[String] = None,
                 recursive: Boolean     = false,
                 verbose: Int           = 0,
-                debug: Boolean         = false)
+                debug: Boolean         = false,
+                includeDirs: Seq[String] = Nil,
+                frameworkIncludeDirs: Seq[String] = Nil,
+                clangArgs: Seq[String] = Nil)
 object Args {
   sealed trait Target
   object Target {
@@ -47,6 +50,27 @@ object CLI {
       .valueName("DIR")
       .action((x, c) => c.copy(chdir = Option(x)))
       .text("""Change to DIR before performing any operations.""")
+
+    opt[String]('I', "include-dir")
+      .optional
+      .valueName("DIR")
+      .maxOccurs(1024)
+      .action((dir,c) => c.copy(includeDirs = c.includeDirs :+ dir))
+      .text("""Add the specified directory to the search path for include files.""")
+
+    opt[String]('F', "framework-include-dir")
+      .optional
+      .valueName("DIR")
+      .maxOccurs(1024)
+      .action((dir,c) => c.copy(frameworkIncludeDirs = c.frameworkIncludeDirs :+ dir))
+      .text("""Add the specified directory to the search path for framework include files.""")
+
+    opt[String]('W',"clang-arg")
+      .optional
+      .valueName("ARG")
+      .maxOccurs(1024)
+      .action((arg,c) => c.copy(clangArgs = c.clangArgs :+ arg))
+      .text("Pass the specified argument to clang")
 
     opt[String]('P', "package")
       .valueName("PACKAGE")

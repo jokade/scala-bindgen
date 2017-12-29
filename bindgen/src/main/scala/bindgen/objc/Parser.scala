@@ -16,7 +16,10 @@ import scala.scalanative.native._
 object Parser extends LazyLogging {
 
   def parse(args: Args, clangArgs: Array[String]): Seq[AST.TranslationUnit] = {
-    val cargs = clangArgs :+ "-ObjC"
+    val cargs = (clangArgs :+ "-ObjC") ++
+      args.clangArgs ++
+      args.includeDirs.map(dir => s"-I$dir") ++
+      args.frameworkIncludeDirs.map(dir => s"-F$dir")
     args.files.map(parseFile(_,args,cargs))
   }
 
