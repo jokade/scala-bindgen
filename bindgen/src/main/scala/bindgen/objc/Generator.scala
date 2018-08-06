@@ -5,7 +5,7 @@ package bindgen.objc
 
 import java.io.{File, FileWriter, StringWriter, Writer}
 
-import bindgen.objc.AST.{GlobalFunction, ScalaType}
+import bindgen.objc.AST.{GlobalFunction, ScalaType, ParamDecl}
 import slogging.LazyLogging
 
 object Generator extends LazyLogging {
@@ -86,10 +86,11 @@ object Generator extends LazyLogging {
   }
 
   private def genMethod(method: AST.Method)(implicit w: Writer): Unit = {
-    val name = method.name
+    val scalaName = genScalaName(method.name,method.args)
+    
     val args = method.args.map(_.toScala).mkString(", ")
     val retType = genReturnType(method)
-    w.writeln(s"  @inline def $name($args): $retType = extern")
+    w.writeln(s"  @inline def $scalaName($args): $retType = extern")
   }
 
   private def genObject(name: String, methods: Seq[AST.Method])(implicit w: Writer): Unit = {
@@ -127,7 +128,8 @@ object Generator extends LazyLogging {
   private def genFunction(function: GlobalFunction)(implicit w: Writer): Unit = {
     import function._
 
-    w.writeln(s"  def $name(${args.map(_.toScala).mkString(", ")}): $returnType = extern")
+    val scalaName = genScalaName(name,args)
+    w.writeln(s"  def $scalaName(${args.map(_.toScala).mkString(", ")}): $returnType = extern")
   }
 
   private def genStruct(struct: AST.StructDecl)(implicit w: Writer): Unit = {
@@ -140,6 +142,15 @@ object Generator extends LazyLogging {
     case x => method.returnType.toString
   }
 
+  private def genSelectorString(name: String, args: Seq[ParamDecl]): String = args.size match {
+    case 0 => name
+    case 1 => name + ":"
+    case _ => (name +: (args.tail.map(_.name))).mkString(":") + ":"
+  }
+
+  private def genScalaNameFromSelectorString(selectorString: String): String = selectorString.replaceAll(":","_")
+
+  private def genScalaName(name: String, args: Seq[ParamDecl]): String = genScalaNameFromSelectorString( genSelectorString(name,args) )
 
   implicit final class RichWriter(val w: Writer) extends AnyVal {
     @inline def writeln(s: String): Unit = w.write(s+"\n")
